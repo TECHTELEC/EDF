@@ -184,7 +184,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
   <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAABkUlEQVR42u3Zv03DQBiH4d/ZBhpaamo6eiQmYQBWyCIZCImCggFoQXQUdBTEdxSJxB9RGTCCPO8Ckb4nd2f7SltEv1hnBAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQN/eMBWuT4rxvamljjMCPI2phv5+K9mbZwWULqua0/McHKXVlK3fxNZDeLjJ5TJDSWs/vQJKxuT4LIcn/vev3V3lYpmhJD8OsN6CHlNXqWO6fttHvx7C0+Psh3A3JAXAZghT5+Ax1HsAAAEAIAAABACAAAAQgO1p6se4VlPHaXdA/631EFqdF2B3/yufAP/XJtJvBjIXQEuX3F6mPqeObsTSaro+99fTtvPSFpN+dRV3wh8P02GmFZAk2XF6f7YUZj2E5TEUgAAAEAAAAgBAAAAIAAABACAAf6QXXFhASLAa1SQAAAAASUVORK5CYII=" alt="Orange">
   <div class="titles">
     <h1>État de frais — Personnel Orange / Dommage au réseau / Vol</h1>
-    <div class="sub">Version 2.4</div>
+    <div class="sub">Version 2.5</div>
   </div>
   <div class="tools">
     <button type="button" class="btn btn-ghost" id="btnInstaller">Installer</button>
@@ -312,7 +312,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
 
 <div class="actions">
   <button type="button" class="btn btn-noir" id="btnPdf">Télécharger le PDF</button>
-  <button type="button" class="btn btn-orange" id="btnMail">Envoyer par mail</button>
+  <button type="button" class="btn btn-orange" id="btnMail">Partager</button>
   <span class="etat" id="etat"></span>
   <button type="button" class="btn btn-ghost" id="btnReinit">Réinitialiser la page</button>
 </div>
@@ -822,7 +822,7 @@ function construirePdf(d, logo){
   doc.setFont("helvetica","normal").setFontSize(9);
   doc.text("Personnel Orange / Dommage au réseau / Vol", L + 17, y + 10);
   doc.setFontSize(7.5).setTextColor(89,89,89);
-  doc.text("Version 2.4", R, y + 4.5, {align:"right"});
+  doc.text("Version 2.5", R, y + 4.5, {align:"right"});
   doc.text("Édité le " + new Date().toLocaleDateString("fr-FR"), R, y + 8.5, {align:"right"});
 
   y += 15.5;
@@ -1537,6 +1537,7 @@ $("#btnInstaller").addEventListener("click", async ()=>{
   try{ dispo = !!(navigator.canShare && navigator.share); }catch(e){}
   if(!dispo){
     // Pas de partage natif : on propose le fichier message, pour ne pas laisser l'envoi sans issue.
+    $("#btnMail").textContent = "Envoyer par mail";
     $("#btnEnvoyer").hidden = false;
     $("#aideEnvoi").hidden = true;
     $("#aideRepli").hidden = false;
