@@ -184,7 +184,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
   <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAABkUlEQVR42u3Zv03DQBiH4d/ZBhpaamo6eiQmYQBWyCIZCImCggFoQXQUdBTEdxSJxB9RGTCCPO8Ckb4nd2f7SltEv1hnBAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQN/eMBWuT4rxvamljjMCPI2phv5+K9mbZwWULqua0/McHKXVlK3fxNZDeLjJ5TJDSWs/vQJKxuT4LIcn/vev3V3lYpmhJD8OsN6CHlNXqWO6fttHvx7C0+Psh3A3JAXAZghT5+Ax1HsAAAEAIAAABACAAAAQgO1p6se4VlPHaXdA/631EFqdF2B3/yufAP/XJtJvBjIXQEuX3F6mPqeObsTSaro+99fTtvPSFpN+dRV3wh8P02GmFZAk2XF6f7YUZj2E5TEUgAAAEAAAAgBAAAAIAAABACAAf6QXXFhASLAa1SQAAAAASUVORK5CYII=" alt="Orange">
   <div class="titles">
     <h1>État de frais — Personnel Orange / Dommage au réseau / Vol</h1>
-    <div class="sub">Version 2.2</div>
+    <div class="sub">Version 2.3</div>
   </div>
   <div class="tools">
     <button type="button" class="btn btn-ghost" id="btnInstaller">Installer</button>
@@ -321,12 +321,12 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
   <div class="modale" role="dialog" aria-modal="true" aria-labelledby="titreMail">
     <header>
       <h3 id="titreMail">Envoyer l'état de frais</h3>
-      <p class="intro">Deux façons de procéder, selon ce dont vous avez besoin.</p>
+      <p class="intro">Le PDF est généré puis joint au message. Tous les champs sont facultatifs.</p>
     </header>
     <div class="corps">
       <div class="champ">
-        <label for="mailTo">Destinataire</label>
-        <input id="mailTo" type="email" placeholder="prenom.nom@orange.com">
+        <label for="mailTo">Destinataire <span class="indice">— facultatif, vous pourrez le choisir dans Outlook</span></label>
+        <input id="mailTo" type="email" placeholder="Laisser vide pour choisir dans Outlook">
         <span class="erreur" id="errMail">Saisissez une adresse valide.</span>
       </div>
       <div class="champ">
@@ -336,8 +336,8 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
       <div class="champ"><label for="mailSujet">Objet</label><input id="mailSujet" type="text"></div>
       <div class="champ"><label for="mailCorps">Message</label><textarea id="mailCorps" rows="5"></textarea></div>
       <p style="font-size:12px;color:var(--gris-600);border-left:3px solid var(--orange);padding-left:10px;margin-top:2px">
-        <b>Avec le PDF joint</b> télécharge un fichier message. Ouvrez-le : Outlook affiche le brouillon complet, pièce jointe comprise.<br>
-        <b>Sans pièce jointe</b> ouvre directement Outlook, mais vous devrez glisser le PDF vous-même.<br>
+        <b>Ouvrir dans Outlook</b> télécharge un fichier message : ouvrez-le et Outlook affiche le brouillon, PDF déjà joint. Destinataire laissé vide, vous le choisissez dans Outlook.<br>
+        <b>Sans pièce jointe</b> ouvre Outlook sans téléchargement, mais réclame une adresse et vous devrez glisser le PDF vous-même.<br>
         <b id="aidePartage" hidden>Partager</b><span id="aidePartageTxt" hidden> passe par le menu de votre téléphone : le PDF part en pièce jointe dans l'application de votre choix.</span>
       </p>
     </div>
@@ -345,7 +345,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
       <button type="button" class="btn btn-ghost" data-fermer>Annuler</button>
       <button type="button" class="btn btn-ghost" id="btnMailto">Sans pièce jointe</button>
       <button type="button" class="btn btn-ghost" id="btnPartager" hidden>Partager…</button>
-      <button type="button" class="btn btn-orange" id="btnEnvoyer">Avec le PDF joint</button>
+      <button type="button" class="btn btn-orange" id="btnEnvoyer">Ouvrir dans Outlook</button>
     </footer>
   </div>
 </div>
@@ -831,7 +831,7 @@ function construirePdf(d, logo){
   doc.setFont("helvetica","normal").setFontSize(9);
   doc.text("Personnel Orange / Dommage au réseau / Vol", L + 17, y + 10);
   doc.setFontSize(7.5).setTextColor(89,89,89);
-  doc.text("Version 2.2", R, y + 4.5, {align:"right"});
+  doc.text("Version 2.3", R, y + 4.5, {align:"right"});
   doc.text("Édité le " + new Date().toLocaleDateString("fr-FR"), R, y + 8.5, {align:"right"});
 
   y += 15.5;
@@ -993,9 +993,9 @@ function construireEml({to, cc, sujet, corps, nomPdf, pdfBase64, expediteur}){
   const front = "_edf_" + Date.now().toString(36);
   const L = [
     "X-Unsent: 1",                      // Outlook ouvre un brouillon modifiable
-    "MIME-Version: 1.0",
-    "To: " + to
+    "MIME-Version: 1.0"
   ];
+  if(to) L.push("To: " + to);          // omis : Outlook ouvre avec le champ destinataire vide
   if(cc) L.push("Cc: " + cc);
   if(expediteur) L.push("From: " + enTete(expediteur));
   L.push(
@@ -1432,9 +1432,14 @@ function telecharger(blob, nom){
   setTimeout(()=> URL.revokeObjectURL(url), 60000);
 }
 
-function saisieMail(){
+/* exigeDestinataire : vrai pour mailto, qui ne peut rien ouvrir sans adresse.
+   Pour le .eml et le partage, l'adresse se choisit ensuite dans la messagerie. */
+function saisieMail(exigeDestinataire){
   const to = $("#mailTo").value.trim();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){
+  const valide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to);
+  if((exigeDestinataire && !to) || (to && !valide)){
+    $("#errMail").textContent = to ? "Saisissez une adresse valide."
+                                   : "Cette voie demande une adresse ; sinon utilisez « Ouvrir dans Outlook ».";
     $("#errMail").classList.add("visible"); $("#mailTo").focus(); return null;
   }
   return {to, cc:$("#mailCc").value.trim(), sujet:$("#mailSujet").value, corps:$("#mailCorps").value};
@@ -1442,7 +1447,7 @@ function saisieMail(){
 
 /* Voie 1 — fichier .eml : Outlook ouvre un brouillon avec le PDF déjà joint */
 $("#btnEnvoyer").addEventListener("click", ()=>{
-  const m = saisieMail(); if(!m) return;
+  const m = saisieMail(false); if(!m) return;
   if(!confirmerIncomplet()) return;
   const b = $("#btnEnvoyer"); b.disabled = true;
   try{
@@ -1455,7 +1460,7 @@ $("#btnEnvoyer").addEventListener("click", ()=>{
     });
     telecharger(new Blob([eml], {type:"message/rfc822"}), nomFichier().replace(/\.pdf$/, ".eml"));
     fermer($("#modaleMail"));
-    message("Message téléchargé — ouvrez-le pour lancer Outlook");
+    message("Message téléchargé — ouvrez-le pour lancer Outlook avec le PDF joint");
   }catch(e){
     console.error(e);
     alert("La préparation du message a échoué.\n\n" + e.message);
@@ -1467,7 +1472,7 @@ $("#btnEnvoyer").addEventListener("click", ()=>{
    L'appel reste synchrone dans le clic pour conserver l'activation utilisateur,
    sans quoi le navigateur bloque silencieusement le lancement d'Outlook. */
 $("#btnMailto").addEventListener("click", ()=>{
-  const m = saisieMail(); if(!m) return;
+  const m = saisieMail(true); if(!m) return;
   if(!confirmerIncomplet()) return;
   const params = ["subject=" + encodeURIComponent(m.sujet), "body=" + encodeURIComponent(m.corps)];
   if(m.cc) params.push("cc=" + m.cc);
@@ -1573,7 +1578,7 @@ $("#btnInstaller").addEventListener("click", async ()=>{
   $("#aidePartageTxt").hidden = false;
 
   bouton.addEventListener("click", async ()=>{
-    const m = saisieMail(); if(!m) return;
+    const m = saisieMail(false); if(!m) return;
     if(!confirmerIncomplet()) return;
     bouton.disabled = true;
     let fichier;
