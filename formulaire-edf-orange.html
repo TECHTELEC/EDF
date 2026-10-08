@@ -107,6 +107,15 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
 .modale ol{padding-left:20px;font-size:13px;line-height:1.7}
 .modale kbd{background:var(--gris-100);border:1px solid var(--gris-300);border-radius:3px;padding:1px 6px;font-size:12px;font-family:inherit;font-weight:600}
 .erreur{font-size:12px;color:#C00;font-weight:600;display:none}
+#listeDossiers{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto}
+.dossier{display:flex;gap:10px;align-items:center;border:1px solid var(--gris-300);
+  border-left:4px solid var(--orange);border-radius:5px;padding:10px 12px;flex-wrap:wrap}
+.dossier-info{flex:1;min-width:170px;display:flex;flex-direction:column;gap:2px}
+.dossier-info b{font-size:13px}
+.dossier-info span{font-size:12px;color:var(--gris-600)}
+.dossier-meta{font-size:11px !important}
+.dossier-actions{display:flex;gap:6px}
+.dossier.courant{background:var(--orange-pale)}
 .erreur.visible{display:block}
 
 /* ---------- Écrans étroits : le tableau devient une suite de fiches ---------- */
@@ -184,7 +193,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
   <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAABkUlEQVR42u3Zv03DQBiH4d/ZBhpaamo6eiQmYQBWyCIZCImCggFoQXQUdBTEdxSJxB9RGTCCPO8Ckb4nd2f7SltEv1hnBAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQN/eMBWuT4rxvamljjMCPI2phv5+K9mbZwWULqua0/McHKXVlK3fxNZDeLjJ5TJDSWs/vQJKxuT4LIcn/vev3V3lYpmhJD8OsN6CHlNXqWO6fttHvx7C0+Psh3A3JAXAZghT5+Ax1HsAAAEAIAAABACAAAAQgO1p6se4VlPHaXdA/631EFqdF2B3/yufAP/XJtJvBjIXQEuX3F6mPqeObsTSaro+99fTtvPSFpN+dRV3wh8P02GmFZAk2XF6f7YUZj2E5TEUgAAAEAAAAgBAAAAIAAABACAAf6QXXFhASLAa1SQAAAAASUVORK5CYII=" alt="Orange">
   <div class="titles">
     <h1>État de frais — Personnel Orange / Dommage au réseau / Vol</h1>
-    <div class="sub">Version 2.5</div>
+    <div class="sub">Version 2.6</div>
   </div>
   <div class="tools">
     <button type="button" class="btn btn-ghost" id="btnInstaller">Installer</button>
@@ -313,6 +322,8 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
 <div class="actions">
   <button type="button" class="btn btn-noir" id="btnPdf">Télécharger le PDF</button>
   <button type="button" class="btn btn-orange" id="btnMail">Partager</button>
+  <button type="button" class="btn btn-ghost" id="btnEnregistrer">Enregistrer</button>
+  <button type="button" class="btn btn-ghost" id="btnDossiers">Mes états de frais</button>
   <span class="etat" id="etat"></span>
   <button type="button" class="btn btn-ghost" id="btnReinit">Réinitialiser la page</button>
 </div>
@@ -338,6 +349,29 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
       <button type="button" class="btn btn-orange" id="btnEnvoyer" hidden>Télécharger le message</button>
       <button type="button" class="btn btn-orange" id="btnPartager" hidden>Partager…</button>
     </footer>
+  </div>
+</div>
+
+<div class="voile" id="modaleDossiers">
+  <div class="modale" role="dialog" aria-modal="true" aria-labelledby="titreDossiers" style="max-width:640px">
+    <header>
+      <h3 id="titreDossiers">Mes états de frais</h3>
+      <p class="intro">Enregistrés dans ce navigateur, sur cet appareil.</p>
+    </header>
+    <div class="corps">
+      <input type="search" id="rechercheDossier" placeholder="Rechercher : constat, lieu, nature ou n° d'OT">
+      <div id="listeDossiers"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--gris-300);padding-top:14px">
+        <button type="button" class="btn btn-ghost btn-mini" id="btnExporter">Exporter la sauvegarde</button>
+        <button type="button" class="btn btn-ghost btn-mini" id="btnImporter">Importer une sauvegarde</button>
+        <input type="file" id="fichierImport" accept="application/json,.json" hidden>
+      </div>
+      <p style="font-size:12px;color:var(--gris-600);border-left:3px solid var(--orange);padding-left:10px">
+        Ces états de frais vivent dans la mémoire de ce navigateur. Vider les données de navigation les effacerait.
+        L'export produit un fichier de sauvegarde, à conserver ou à réimporter sur un autre appareil.
+      </p>
+    </div>
+    <footer><button type="button" class="btn btn-ghost" data-fermer>Fermer</button></footer>
   </div>
 </div>
 
@@ -822,7 +856,7 @@ function construirePdf(d, logo){
   doc.setFont("helvetica","normal").setFontSize(9);
   doc.text("Personnel Orange / Dommage au réseau / Vol", L + 17, y + 10);
   doc.setFontSize(7.5).setTextColor(89,89,89);
-  doc.text("Version 2.5", R, y + 4.5, {align:"right"});
+  doc.text("Version 2.6", R, y + 4.5, {align:"right"});
   doc.text("Édité le " + new Date().toLocaleDateString("fr-FR"), R, y + 8.5, {align:"right"});
 
   y += 15.5;
@@ -1192,12 +1226,180 @@ $("#btnAjouter").addEventListener("click", ()=>{
   totaux(); sauver();
 });
 
+/* ---------- Bibliothèque d'états de frais ---------- */
+const CLE_DOSSIERS = "edf-orange-dossiers-v1";
+let dossierCourant = null;
+
+const echap = v => String(v == null ? "" : v)
+  .replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function lireDossiers(){
+  try{ return JSON.parse(localStorage.getItem(CLE_DOSSIERS) || "{}") || {}; }catch(e){ return {}; }
+}
+
+function ecrireDossiers(d){
+  try{ localStorage.setItem(CLE_DOSSIERS, JSON.stringify(d)); return true; }
+  catch(e){
+    alert("La mémoire du navigateur est saturée.\n\n" +
+          "Exportez la sauvegarde, puis supprimez quelques états de frais anciens.");
+    return false;
+  }
+}
+
+/* Le constat identifie le dossier ; à défaut, un identifiant est tiré de l'horloge. */
+function identifiant(e){
+  const c = (e.constat || "").trim();
+  return c ? "C:" + c.toUpperCase() : null;
+}
+
+function etiquette(e){
+  const c = (e.constat || "").trim();
+  return c ? "Constat " + c : ((e.ui || "").trim() || "Sans numéro de constat");
+}
+
+/* Résumé stocké à côté des données, pour lister et rechercher sans tout relire. */
+function resume(e){
+  return {
+    constat:(e.constat || "").trim(), nature:e.nature || "", ui:e.ui || "",
+    lignes:e.rows.length,
+    ots:e.rows.map(r => (r.ot || "").trim()).filter(Boolean)
+  };
+}
+
+$("#btnEnregistrer").addEventListener("click", ()=>{
+  const e = etat();
+  const id = identifiant(e) || dossierCourant || ("D:" + Date.now().toString(36));
+  const d = lireDossiers();
+  const ecrase = !!d[id] && id !== dossierCourant;
+  if(ecrase && !confirm(
+      "Un état de frais est déjà enregistré sous « " + etiquette(e) + " ».\n\nLe remplacer ?")) return;
+  d[id] = Object.assign({id, modifie:new Date().toISOString(), data:e}, resume(e));
+  if(!ecrireDossiers(d)) return;
+  dossierCourant = id;
+  message((ecrase ? "Remplacé — « " : "Enregistré — « ") + etiquette(e) + " »");
+});
+
+function listerDossiers(){
+  const d = lireDossiers();
+  const filtre = $("#rechercheDossier").value.trim().toLowerCase();
+  let ids = Object.keys(d).sort((a,b)=> String(d[b].modifie||"").localeCompare(String(d[a].modifie||"")));
+  if(filtre){
+    ids = ids.filter(id=>{
+      const e = d[id];
+      return [e.constat, e.ui, e.nature].concat(e.ots || [])
+        .join(" ").toLowerCase().includes(filtre);
+    });
+  }
+  const cible = $("#listeDossiers");
+  if(!ids.length){
+    cible.innerHTML = '<p style="font-size:13px;color:var(--gris-600);padding:6px 0">' +
+      (Object.keys(d).length
+        ? "Aucun état de frais ne correspond à cette recherche."
+        : "Aucun état de frais enregistré. Le bouton « Enregistrer », en bas de page, en crée un.") + "</p>";
+    return;
+  }
+  cible.innerHTML = ids.map(id=>{
+    const e = d[id];
+    const quand = e.modifie
+      ? new Date(e.modifie).toLocaleString("fr-FR", {dateStyle:"short", timeStyle:"short"}) : "";
+    const second = [e.nature, e.ui].filter(Boolean).join(" · ") || "—";
+    return '<div class="dossier' + (id === dossierCourant ? " courant" : "") + '">' +
+      '<div class="dossier-info">' +
+        "<b>" + echap(etiquette(e)) + "</b>" +
+        "<span>" + echap(second) + "</span>" +
+        '<span class="dossier-meta">' + (e.lignes || 0) + " ligne" + ((e.lignes||0) > 1 ? "s" : "") +
+          (quand ? " · modifié le " + quand : "") + "</span>" +
+      "</div>" +
+      '<div class="dossier-actions">' +
+        '<button type="button" class="btn btn-mini btn-orange" data-ouvrir="' + echap(id) + '">Ouvrir</button>' +
+        '<button type="button" class="btn btn-mini" data-supprimer="' + echap(id) + '">Supprimer</button>' +
+      "</div></div>";
+  }).join("");
+}
+
+$("#btnDossiers").addEventListener("click", ()=>{
+  $("#rechercheDossier").value = "";
+  listerDossiers();
+  ouvrir("#modaleDossiers");
+});
+$("#rechercheDossier").addEventListener("input", listerDossiers);
+
+$("#listeDossiers").addEventListener("click", e=>{
+  const bo = e.target.closest("[data-ouvrir]"), bs = e.target.closest("[data-supprimer]");
+  const d = lireDossiers();
+  if(bo){
+    const id = bo.dataset.ouvrir;
+    if(!d[id]) return;
+    if(!confirm("Ouvrir « " + etiquette(d[id]) + " » ?\n\nLa saisie en cours sera remplacée.")) return;
+    appliquer(d[id].data);
+    dossierCourant = id;
+    sauver();
+    fermer($("#modaleDossiers"));
+    message("Ouvert — « " + etiquette(d[id]) + " »");
+    return;
+  }
+  if(bs){
+    const id = bs.dataset.supprimer;
+    if(!d[id]) return;
+    if(!confirm("Supprimer définitivement « " + etiquette(d[id]) + " » ?")) return;
+    delete d[id];
+    if(!ecrireDossiers(d)) return;
+    if(dossierCourant === id) dossierCourant = null;
+    listerDossiers();
+    message("État de frais supprimé");
+  }
+});
+
+$("#btnExporter").addEventListener("click", ()=>{
+  const d = lireDossiers();
+  const n = Object.keys(d).length;
+  if(!n){ alert("Aucun état de frais à exporter."); return; }
+  const contenu = JSON.stringify({format:"etats-de-frais", version:1,
+    exporte:new Date().toISOString(), dossiers:d});
+  telecharger(new Blob([contenu], {type:"application/json"}),
+    "sauvegarde-etats-de-frais-" + new Date().toISOString().slice(0,10) + ".json");
+  message(n + " état" + (n > 1 ? "s" : "") + " de frais exporté" + (n > 1 ? "s" : ""));
+});
+
+$("#btnImporter").addEventListener("click", ()=> $("#fichierImport").click());
+$("#fichierImport").addEventListener("change", ()=>{
+  const f = $("#fichierImport").files && $("#fichierImport").files[0];
+  $("#fichierImport").value = "";
+  if(!f) return;
+  const lecteur = new FileReader();
+  lecteur.onerror = ()=> alert("La lecture du fichier a échoué.");
+  lecteur.onload = ()=>{
+    let recu;
+    try{ recu = JSON.parse(lecteur.result); }
+    catch(e){ alert("Ce fichier n'est pas une sauvegarde lisible."); return; }
+    const entrants = recu && recu.dossiers;
+    if(!entrants || typeof entrants !== "object"){
+      alert("Ce fichier ne contient pas d'états de frais."); return;
+    }
+    const d = lireDossiers();
+    let ajoutes = 0, remplaces = 0;
+    Object.keys(entrants).forEach(id=>{
+      const e = entrants[id];
+      if(!e || !e.data || !Array.isArray(e.data.rows)) return;   // entrée inexploitable, ignorée
+      if(d[id]) remplaces++; else ajoutes++;
+      d[id] = e;
+    });
+    if(!ajoutes && !remplaces){ alert("Aucun état de frais exploitable dans ce fichier."); return; }
+    if(!ecrireDossiers(d)) return;
+    listerDossiers();
+    message(ajoutes + " ajouté" + (ajoutes > 1 ? "s" : "") +
+            ", " + remplaces + " remplacé" + (remplaces > 1 ? "s" : ""));
+  };
+  lecteur.readAsText(f);
+});
+
 /* Réinitialisation : on supprime le brouillon puis on recharge.
    Aucune liste de champs à tenir à jour, donc rien ne peut être oublié. */
 $("#btnReinit").addEventListener("click", ()=>{
   const ok = confirm(
     "Réinitialiser la page ?\n\n" +
-    "Toutes les saisies, la signature et le brouillon enregistré seront perdus."
+    "La saisie en cours et la signature seront perdues.\n" +
+    "Les états de frais enregistrés dans « Mes états de frais » sont conservés."
   );
   if(!ok) return;
   try{ localStorage.removeItem(CLE); }catch(e){}
@@ -1326,12 +1528,15 @@ function etat(){
 
 function sauver(){ try{ localStorage.setItem(CLE, JSON.stringify(etat())); }catch(e){} }
 
-function restaurer(){
-  let d = null;
-  try{ d = JSON.parse(localStorage.getItem(CLE) || "null"); }catch(e){}
-  if(!d || !Array.isArray(d.rows) || !d.rows.length){ nouvelleLigne(); return false; }
+/* Remplit le formulaire depuis un état enregistré : sert au brouillon
+   automatique comme à l'ouverture d'un dossier. */
+function appliquer(d){
+  if(!d || !Array.isArray(d.rows)) return false;
+  lignes.innerHTML = "";
+  sig.effacer();
   ["ui","constat","nature","auteurChoix","auteurNom","description","nom","qualite","dateSign"]
-    .forEach(k=>{ if(d[k] != null) $("#"+k).value = d[k]; });
+    .forEach(k=>{ $("#"+k).value = d[k] != null ? d[k] : ""; });
+  if(!$("#auteurChoix").value) $("#auteurChoix").value = "Pas d'information sur l'auteur";
   majAuteur();
   // un brouillon antérieur à la fusion portait un second champ : on le rapatrie
   if(d.materiel && d.materiel.trim()){
@@ -1339,8 +1544,16 @@ function restaurer(){
     champ.value = (champ.value ? champ.value.trim() + "\n\n" : "") + d.materiel.trim();
   }
   if(d.signature) sig.ecrire(d.signature);
-  d.rows.forEach(r=> nouvelleLigne(r));
+  (d.rows.length ? d.rows : [{}]).forEach(r=> nouvelleLigne(r));
+  totaux();
   return true;
+}
+
+function restaurer(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(CLE) || "null"); }catch(e){}
+  if(!d || !Array.isArray(d.rows) || !d.rows.length){ nouvelleLigne(); return false; }
+  return appliquer(d);
 }
 
 ["ui","constat","nature","auteurNom","description","nom","qualite","dateSign"].forEach(id=>
