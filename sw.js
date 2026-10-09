@@ -1,5 +1,5 @@
 /* Service worker : met l'application en cache pour un fonctionnement hors connexion. */
-const CACHE = "edf-v2-6";
+const CACHE = "edf-v2-7";
 const FICHIERS = ["./", "./index.html", "./manifest.webmanifest", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", e => {

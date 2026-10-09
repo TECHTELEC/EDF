@@ -193,7 +193,7 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
   <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAABkUlEQVR42u3Zv03DQBiH4d/ZBhpaamo6eiQmYQBWyCIZCImCggFoQXQUdBTEdxSJxB9RGTCCPO8Ckb4nd2f7SltEv1hnBAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAAIAAABAAAAIAQAAACAAAAQAgAAAEAIAAABAAAAIAQN/eMBWuT4rxvamljjMCPI2phv5+K9mbZwWULqua0/McHKXVlK3fxNZDeLjJ5TJDSWs/vQJKxuT4LIcn/vev3V3lYpmhJD8OsN6CHlNXqWO6fttHvx7C0+Psh3A3JAXAZghT5+Ax1HsAAAEAIAAABACAAAAQgO1p6se4VlPHaXdA/631EFqdF2B3/yufAP/XJtJvBjIXQEuX3F6mPqeObsTSaro+99fTtvPSFpN+dRV3wh8P02GmFZAk2XF6f7YUZj2E5TEUgAAAEAAAAgBAAAAIAAABACAAf6QXXFhASLAa1SQAAAAASUVORK5CYII=" alt="Orange">
   <div class="titles">
     <h1>État de frais — Personnel Orange / Dommage au réseau / Vol</h1>
-    <div class="sub">Version 2.6</div>
+    <div class="sub">Version 2.7</div>
   </div>
   <div class="tools">
     <button type="button" class="btn btn-ghost" id="btnInstaller">Installer</button>
@@ -217,17 +217,16 @@ tr.ligne-ko td.tri input:not(:disabled):placeholder-shown{background:#FFF6F6}
         <label for="nature">Nature</label>
         <select id="nature">
           <option value="">—</option>
-          <option>Vol</option>
+          <option>Vol et/ou Tentative de Vol</option>
           <option>Dommage réseau</option>
-          <option>Tentative de vol (Vandalisme)</option>
+          <option>Vandalisme</option>
         </select>
       </div>
       <div class="champ">
         <label for="auteurChoix">Auteur</label>
         <select id="auteurChoix">
           <option>Pas d'information sur l'auteur</option>
-          <option>Auteur du dommage (si connu)</option>
-          <option>Auteur pouvant être</option>
+          <option>Auteur présumé</option>
         </select>
         <input id="auteurNom" type="text" class="autre" placeholder="Nom de l'auteur, entreprise, immatriculation…" hidden>
       </div>
@@ -856,7 +855,7 @@ function construirePdf(d, logo){
   doc.setFont("helvetica","normal").setFontSize(9);
   doc.text("Personnel Orange / Dommage au réseau / Vol", L + 17, y + 10);
   doc.setFontSize(7.5).setTextColor(89,89,89);
-  doc.text("Version 2.6", R, y + 4.5, {align:"right"});
+  doc.text("Version 2.7", R, y + 4.5, {align:"right"});
   doc.text("Édité le " + new Date().toLocaleDateString("fr-FR"), R, y + 8.5, {align:"right"});
 
   y += 15.5;
@@ -878,8 +877,7 @@ function construirePdf(d, logo){
   /* Sans auteur désigné, le PDF laisse la ligne vierge plutôt que d'y porter une mention. */
   const choix = d.auteurChoix || "Pas d'information sur l'auteur";
   const sansAuteur = choix === "Pas d'information sur l'auteur";
-  const libelleAuteur = sansAuteur ? "Auteur"
-    : (choix === "Auteur pouvant être" ? "Auteur pouvant être" : "Auteur du dommage");
+  const libelleAuteur = sansAuteur ? "Auteur" : "Auteur présumé";
 
   champ("Lieu", d.ui, L, 62);
   champ("N° de constat", d.constat, L + 70, 52);
@@ -1534,8 +1532,15 @@ function appliquer(d){
   if(!d || !Array.isArray(d.rows)) return false;
   lignes.innerHTML = "";
   sig.effacer();
-  ["ui","constat","nature","auteurChoix","auteurNom","description","nom","qualite","dateSign"]
+  // les intitulés d'auteur des versions antérieures sont repris sur « Auteur présumé »
+  const ANCIENS_AUTEURS = ["Auteur du dommage (si connu)", "Auteur pouvant être"];
+  const auteurLu = d.auteurChoix || "";
+  const auteurRepris = ANCIENS_AUTEURS.includes(auteurLu) ? "Auteur présumé"
+    : (auteurLu || "Pas d'information sur l'auteur");
+
+  ["ui","constat","nature","auteurNom","description","nom","qualite","dateSign"]
     .forEach(k=>{ $("#"+k).value = d[k] != null ? d[k] : ""; });
+  $("#auteurChoix").value = auteurRepris;
   if(!$("#auteurChoix").value) $("#auteurChoix").value = "Pas d'information sur l'auteur";
   majAuteur();
   // un brouillon antérieur à la fusion portait un second champ : on le rapatrie
